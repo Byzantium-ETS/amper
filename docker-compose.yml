@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  phoenixd:
+    image: nodana/phoenixd:0.5.0
+    command: "--chain=testnet --http-password="
+    volumes:
+      - phoenixd-data:/root/.config/phoenix-daemon
+    ports:
+      - "9740:9740"
+    networks:
+      - lsat-network
+
+  lsat-server:
+    build:
+      context: .
+      dockerfile: ./examples/server/Dockerfile
+    environment:
+      - PHOENIX_URL=http://phoenixd:9740
+    ports:
+      - "8080:8080"
+    depends_on:
+      - phoenixd
+    networks:
+      - lsat-network
+
+networks:
+  lsat-network:
+    driver: bridge
+
+volumes:
+  phoenixd-data:
