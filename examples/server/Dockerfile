@@ -13,10 +13,10 @@ RUN go mod download
 COPY . .
 
 # Build the server application
-RUN go build -o lsat-server ./examples/server/server.go
+RUN go build -o server ./examples/server/server.go
 
 # Expose the port the server runs on (assuming 8080)
 EXPOSE 8080
 
 # Command to run the server
-CMD ["./lsat-server"]
+CMD ["./server"]

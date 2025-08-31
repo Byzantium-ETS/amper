@@ -9,9 +9,9 @@ services:
     ports:
       - "9740:9740"
     networks:
-      - lsat-network
+      - l402-network
 
-  lsat-server:
+  server:
     build:
       context: .
       dockerfile: ./examples/server/Dockerfile
@@ -22,10 +22,10 @@ services:
     depends_on:
       - phoenixd
     networks:
-      - lsat-network
+      - l402-network
 
 networks:
-  lsat-network:
+  l402-network:
     driver: bridge
 
 volumes:
