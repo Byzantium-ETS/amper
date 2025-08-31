@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"errors"
 	"lsat/auth"
 	"lsat/macaroon"
@@ -60,7 +61,8 @@ func main() {
 				// Get the macaroon from the Authorization header
 				parts := strings.Split(ctx.GetHeader("Authorization"), " ")
 				credentials := strings.Split(parts[1], ":")
-				mac, _ := macaroon.DecodeBase64(credentials[0])
+				macaroonData, _ := base64.StdEncoding.DecodeString(credentials[0])
+				mac, _ := macaroon.Deserialize(macaroonData)
 
 				// Check for which test the user is authorized
 				iter := mac.GetValue("test_id")
@@ -72,7 +74,7 @@ func main() {
 					macaroon.NewCaveat("permissions", "r"),
 				).Bake()
 
-				ctx.JSON(http.StatusOK, mac.ToJSON())
+				ctx.JSON(http.StatusOK, mac.String())
 				return nil
 			},
 			Get: func(c any) error {
@@ -81,7 +83,8 @@ func main() {
 				// Get the macaroon from the Authorization header
 				parts := strings.Split(ctx.GetHeader("Authorization"), " ")
 				credentials := strings.Split(parts[1], ":")
-				mac, _ := macaroon.DecodeBase64(credentials[0])
+				macaroonData, _ := base64.StdEncoding.DecodeString(credentials[0])
+				mac, _ := macaroon.Deserialize(macaroonData)
 
 				// Check for which test the user is authorized
 				iter := mac.GetValue("test_id")

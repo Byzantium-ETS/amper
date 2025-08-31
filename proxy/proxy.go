@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"lsat/auth"
@@ -45,7 +46,7 @@ func (h *L402ProxyServer) HandleMint(c *gin.Context) {
 	}
 
 	// Set the WWW-Authenticate header.
-	mac := pretoken.Macaroon
+	mac := pretoken.Macaroon.EncodedString()
 	authHeader := fmt.Sprintf("%s macaroon=\"%s\", invoice=\"%s\"", macaroonHeader, mac, pretoken.InvoiceResponse.Invoice)
 	c.Header("WWW-Authenticate", authHeader)
 	c.JSON(http.StatusPaymentRequired, gin.H{"error": "Payment Required"})
@@ -65,7 +66,11 @@ func parseToken(authHeader string) (macaroon.Token, error) {
 		return macaroon.Token{}, errors.New("Invalid credentials")
 	}
 
-	mac, err := macaroon.DecodeBase64(credentials[0])
+	macaroonData, err := base64.StdEncoding.DecodeString(credentials[0])
+	if err != nil {
+		return macaroon.Token{}, err
+	}
+	mac, err := macaroon.Deserialize(macaroonData)
 	if err != nil {
 		return macaroon.Token{}, err
 	}

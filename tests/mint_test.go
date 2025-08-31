@@ -23,7 +23,7 @@ func TestMintAuthMacaroon(t *testing.T) {
 		t.Error(err)
 	}
 
-	t.Log(preToken.Macaroon.ToJSON())
+	t.Log(preToken.Macaroon)
 
 	err = minter.AuthMacaroon(&preToken.Macaroon)
 
@@ -51,7 +51,7 @@ func TestMintAuthToken(t *testing.T) {
 		t.Error(err)
 	}
 
-	t.Log(preToken.Macaroon.ToJSON())
+	t.Log(preToken.Macaroon)
 
 	token, err := preToken.Pay(&lightningNode)
 

@@ -13,12 +13,6 @@ import (
 )
 
 var (
-	// Connect to the phoenix node
-	// lightningClient = phoenixd.NewPhoenixClient("http://127.0.0.1:9740", "")
-	// lightningNode = phoenixd.PhoenixNode{Client: lightningClient}
-	// challenger = &challenge.ChallengeFactory{
-	// 	LightningNode: &lightningNode,
-	// }
 	secretStore = secrets.NewSecretFactory()
 	challenger  = mock.NewChallenger()
 )
@@ -26,7 +20,7 @@ var (
 func main() {
 	config := service.NewConfig(
 		service.Service{
-			Name:  "image",
+			Name:  "test",
 			Tier:  service.BaseTier,
 			Price: 100,
 			FirstPartyCaveats: []service.Caveat{
@@ -35,7 +29,9 @@ func main() {
 			Conditions: []service.Condition{service.Expire{}},
 			Get: func(c any) error {
 				ctx := c.(*gin.Context)
-				ctx.Redirect(http.StatusFound, "https://picsum.photos/1000")
+				ctx.JSON(http.StatusOK, gin.H{
+					"success": "The test is successful.",
+				})
 				return nil
 			},
 		},
