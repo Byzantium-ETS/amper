@@ -187,7 +187,7 @@ func (h *L402ProxyServer) Run() {
 
 	// Start the server.
 	port := getEnv("PORT", "8080")
-	router.Run("localhost:" + port)
+	router.Run("0.0.0.0:" + port)
 }
 
 // Get the value of an environment variable or a default value.

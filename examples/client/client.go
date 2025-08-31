@@ -8,7 +8,7 @@ import (
 	"lsat/auth"
 	"lsat/challenge"
 	"lsat/macaroon"
-	"lsat/mock"
+	"lsat/phoenixd"
 	"net/http"
 	"os"
 	"strings"
@@ -41,11 +41,11 @@ func main() {
 	}
 }
 
-var lightningNode = mock.TestLightningNode{Balance: 10000}
+// var lightningNode = mock.TestLightningNode{Balance: 10000}
 
 // Connect to the phoenix node
-// var lightningClient = phoenixd.NewPhoenixClient("http://127.0.0.1:9740", "")
-// var lightningNode = phoenixd.PhoenixNode{Client: lightningClient}
+var lightningClient = phoenixd.NewPhoenixClient("http://127.0.0.1:4000", "")
+var lightningNode = phoenixd.PhoenixNode{Client: lightningClient}
 
 func parsePreToken(mac string, invoice string) (macaroon.PreToken, error) {
 	Macaroon, err := decodeMacaroon(mac)

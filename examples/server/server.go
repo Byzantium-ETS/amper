@@ -2,11 +2,13 @@ package main
 
 import (
 	"lsat/auth"
-	"lsat/mock"
+	"lsat/challenge"
+	"lsat/phoenixd"
 	"lsat/proxy"
 	"lsat/secrets"
 	"lsat/service"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,13 +16,15 @@ import (
 
 var (
 	// Connect to the phoenix node
-	// lightningClient = phoenixd.NewPhoenixClient("http://127.0.0.1:9740", "")
-	// lightningNode = phoenixd.PhoenixNode{Client: lightningClient}
-	// challenger = &challenge.ChallengeFactory{
-	// 	LightningNode: &lightningNode,
-	// }
+	lightningClient = phoenixd.NewPhoenixClient(
+		getEnv("PHOENIX_URL", "http://127.0.0.1:9740"),
+		getEnv("PHOENIX_PASSWORD", ""),
+	)
+	lightningNode = phoenixd.PhoenixNode{Client: lightningClient}
+	challenger    = &challenge.ChallengeFactory{
+		LightningNode: &lightningNode,
+	}
 	secretStore = secrets.NewSecretFactory()
-	challenger  = mock.NewChallenger()
 )
 
 func main() {
@@ -44,4 +48,11 @@ func main() {
 	router := proxy.L402ProxyServer{Minter: &minter}
 
 	router.Run()
+}
+
+func getEnv(key, defaultVal string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultVal
 }
