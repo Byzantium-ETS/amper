@@ -4,41 +4,42 @@ An implementation of the [L402](https://docs.lightning.engineering/the-lightning
 
 ## Overview
 
-L402 is a protocol that leverages the capabilities of the Lightning Network for token minting and service authorization to enable the monetization of APIs through Bitcoin.
+L402 is a protocol that leverages the capabilities of the Lightning Network for token minting and service authorization to enable the monetization of APIs with Bitcoin.
 
 > [!NOTE]
 > Additionally, it offers an implementation of the [phoenixd](https://phoenix.acinq.co/server) API for integration with a real Lightning node.
 
 ## Usage
 
-Currently, this project does not offer standalone server or client implementations. However, it provides essential utilities and an example setup to get started.
+This project serves as a framework for building L402-based applications. While it does not provide standalone server or client implementations, it includes essential utilities and examples to help you get started.
 
-### Example
+### Server
 
-The example available in the `./server/` and `./client/` directories demonstrates using a mocked Lightning node to issue and resolve challenges.
+You can run the example server along with a `phoenixd` instance using Docker Compose. This provides a more realistic setup where the L402 server interacts with a real Lightning node.
 
-To get started, follow these instructions:
+To launch the services, run the following command:
 
-1. **Launch the Server**
+```sh
+docker-compose up
+```
 
-   Open a terminal and run the following command to start the server:
+This will start the `phoenixd` node and the example server, which is configured to connect to it.
 
-   ```sh
-   go run ./examples/server/server.go
-   # 2024/06/09 09:21:20 Server launched at localhost:8080
-   ```
+After starting the services, you can mint a token and access the service by running the client:
 
-2. **Mint a Token and Access the Service**
+```sh
+go run ./examples/client/client.go
+```
 
-   In another terminal, run the following command to mint a token and access the service:
+> You need to have another running `phoenixd` instance for this to work.
 
-   ```sh
-   go run ./examples/client/server.go
-   # Requesting Token...
-   # {"user_id":"...","caveats": "...","signature":"..."}
-   # Sending Authorization Request...
-   # ...
-   ```
+### Client
+
+In another terminal, run the following command to mint a token and access the service:
+
+```sh
+go run ./examples/client/client.go
+```
 
 ## Model
 

@@ -11,6 +11,16 @@ services:
     networks:
       - l402-network
 
+  phoenixd-client:
+    image: nodana/phoenixd:0.5.0
+    command: "--chain=testnet --http-password="
+    volumes:
+      - phoenixd-client-data:/root/.config/phoenix-daemon
+    ports:
+      - "4000:9740"
+    networks:
+      - l402-network
+
   server:
     build:
       context: .
@@ -30,3 +40,4 @@ networks:
 
 volumes:
   phoenixd-data:
+  phoenixd-client-data:

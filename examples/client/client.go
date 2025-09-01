@@ -15,11 +15,7 @@ import (
 	"time"
 )
 
-const (
-	defaultService = "image:0"
-)
-
-var serviceURL = getEnv("SERVICE_URL", "http://localhost:8080/service/"+defaultService)
+var serviceURL = "http://0.0.0.0:8080/service/image:0"
 
 type TestClient struct {
 	tokenPath string
@@ -41,10 +37,11 @@ func main() {
 	}
 }
 
-// var lightningNode = mock.TestLightningNode{Balance: 10000}
-
 // Connect to the phoenix node
-var lightningClient = phoenixd.NewPhoenixClient("http://127.0.0.1:4000", "")
+var lightningClient = phoenixd.NewPhoenixClient(
+	getEnv("PHOENIX_URL", "http://0.0.0.0:4000"),
+	getEnv("PHOENIX_PASSWORD", ""),
+)
 var lightningNode = phoenixd.PhoenixNode{Client: lightningClient}
 
 func parsePreToken(mac string, invoice string) (macaroon.PreToken, error) {
