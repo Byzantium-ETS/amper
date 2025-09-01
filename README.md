@@ -25,7 +25,6 @@ To get started, follow these instructions:
 
    ```sh
    go run ./examples/server/server.go
-   # 2024/06/09 09:21:20 Server launched at localhost:8080
    ```
 
 2. **Mint a Token and Access the Service**
@@ -34,23 +33,50 @@ To get started, follow these instructions:
 
    ```sh
    go run ./examples/client/server.go
-   # Requesting Token...
-   # {"user_id":"...","caveats": "...","signature":"..."}
-   # Sending Authorization Request...
-   # ...
    ```
-
-## Model
-
-The following diagram illustrates the domain model for the L402 implementation:
-
-![Domain Model](<out/MDD/Domain Model.png>)
 
 ## Authorization Flow
 
 The authorization flow for L402 tokens is depicted in the following diagram:
 
-![Authorization Flow](<out/Authorization/Authorization Flow.png>)
+```mermaid
+sequenceDiagram
+    title L402 : Service authorization flow
+
+    actor C as Client
+    participant CNode as Client Node
+    participant Auth as Authorization Server
+    participant SNode as Auth Server Node
+    participant Res as Resource
+
+    alt First time user
+        C ->> Auth: PUT /
+        activate Auth
+        Auth ->> SNode: Create invoice
+        activate SNode
+        SNode -->> Auth: Invoice
+        deactivate SNode
+        Auth ->> Auth: Mint token + invoice
+        Auth -->> C: 402: Payment Required, token + invoice
+        deactivate Auth
+        C ->> CNode: Send payment
+        CNode ->> SNode: Send payment
+        activate SNode
+        SNode -->> CNode: Preimage
+        deactivate SNode
+        CNode -->> C: Preimage
+    else User with a token
+        C ->> Auth: GET /protected, token + preimage
+        activate Auth
+        Auth ->> Res:
+        activate Res
+        Res ->> Res: Check token, validate caveats
+        Res -->> Auth: Protected
+        deactivate Res
+        Auth -->> C:
+        deactivate Auth
+    end
+```
 
 ## Resources
 

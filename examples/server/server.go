@@ -29,9 +29,7 @@ func main() {
 			Conditions: []service.Condition{service.Expire{}},
 			Get: func(c any) error {
 				ctx := c.(*gin.Context)
-				ctx.JSON(http.StatusOK, gin.H{
-					"success": "The test is successful.",
-				})
+				ctx.JSON(http.StatusOK, "Hello, World!")
 				return nil
 			},
 		},

@@ -25,6 +25,7 @@ const (
 // L402ProxyServer is a struct that contains the necessary information to handle service requests.
 type L402ProxyServer struct {
 	*auth.Minter
+	Router *gin.Engine
 }
 
 // Handle the minting of a new token.
@@ -165,7 +166,9 @@ func (h *L402ProxyServer) HandleToken(c *gin.Context) {
 // Run the service.
 func (h *L402ProxyServer) Run() {
 	// Initialize the Gin router.
-	router := gin.Default()
+	if h.Router == nil {
+		h.Router = gin.Default()
+	}
 
 	// Configure CORS middleware
 	config := cors.DefaultConfig()
@@ -183,16 +186,16 @@ func (h *L402ProxyServer) Run() {
 	}
 
 	// Use CORS middleware
-	router.Use(cors.New(config))
+	h.Router.Use(cors.New(config))
 
 	// Define the routes.
-	router.PUT("/service/:service", h.HandleMint)
-	router.POST("/service/:service", h.HandleUpdate)
-	router.GET("/service/:service", h.HandleToken)
+	h.Router.PUT("/service/:service", h.HandleMint)
+	h.Router.POST("/service/:service", h.HandleUpdate)
+	h.Router.GET("/service/:service", h.HandleToken)
 
 	// Start the server.
 	port := getEnv("PORT", "8080")
-	router.Run("localhost:" + port)
+	h.Router.Run("localhost:" + port)
 }
 
 // Get the value of an environment variable or a default value.

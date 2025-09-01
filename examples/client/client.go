@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
 const (
@@ -144,9 +143,7 @@ func (c *TestClient) sendAuthorizationRequest(url string, token macaroon.Token) 
 		if err != nil {
 			fmt.Println("Error creating the store:", err)
 		}
-		// if c.tokenPath == "" {
-		shareToken(store, token)
-		// }
+		store.StoreToken(token.Id(), token)
 
 		body, _ := io.ReadAll(resp.Body)
 		fmt.Println(string(body))
@@ -161,26 +158,6 @@ func getTokenPath() string {
 	flag.Parse()
 
 	return *token
-}
-
-// shareToken stores a version of the token that can be shared with others.
-func shareToken(store auth.TokenStore, token macaroon.Token) error {
-	// The time at which the new macaroon will expire.
-	expiryDate := time.Now().Add(5 * time.Minute)
-
-	// Creating the restricted macaroon
-	mac, err := token.Macaroon.Oven().WithThirdPartyCaveats(macaroon.NewCaveat(macaroon.ExpiryDateKey, expiryDate.Format(time.RFC3339))).Bake()
-	if err != nil {
-		return err
-	}
-
-	// Update the macaroon in the token.
-	token.Macaroon = mac
-
-	// Store the token.
-	store.StoreToken(token.Id(), token)
-
-	return nil
 }
 
 func getEnv(key, defaultVal string) string {
