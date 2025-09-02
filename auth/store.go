@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"encoding/base64"
 	"fmt"
 	"lsat/macaroon"
 	"os"
@@ -51,8 +50,12 @@ func (store *LocalStore) StoreToken(id macaroon.TokenId, token macaroon.Token) e
 	// Construct the file path
 	filePath := store.FilePath(id)
 
-	// Write the token to the file in the new format
-	data := token.String()
+	// Write the token to the file using Macaroon.String() for formatting
+	data := fmt.Sprintf(
+		"%s\npreimage %s",
+		token.Macaroon.String(),
+		token.Preimage.String(),
+	)
 	err := os.WriteFile(filePath, []byte(data), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write token to file: %v", err)
@@ -66,38 +69,7 @@ func (store *LocalStore) GetToken(id macaroon.TokenId) (*macaroon.Token, error) 
 	// Construct the file path
 	filePath := store.FilePath(id)
 
-	// Read the token data from the file
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read token file: %v", err)
-	}
-
-	// Split the token data at the colon
-	parts := strings.Split(string(data), ":")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid token format")
-	}
-
-	// Deserialize the macaroon from the first part
-	macaroonData, err := base64.StdEncoding.DecodeString(parts[0])
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode macaroon data: %v", err)
-	}
-	mac, err := macaroon.Deserialize(macaroonData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize macaroon: %v", err)
-	}
-
-	// Parse the preimage from the second part
-	preimage, err := lntypes.MakePreimageFromStr(parts[1])
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse preimage: %v", err)
-	}
-
-	return &macaroon.Token{
-		Macaroon: mac,
-		Preimage: preimage,
-	}, nil
+	return store.GetTokenFromPath(filePath)
 }
 
 func (store *LocalStore) GetTokenFromPath(filePath string) (*macaroon.Token, error) {
@@ -107,24 +79,24 @@ func (store *LocalStore) GetTokenFromPath(filePath string) (*macaroon.Token, err
 		return nil, fmt.Errorf("failed to read token file: %v", err)
 	}
 
-	// Split the token data at the colon
-	parts := strings.Split(string(data), ":")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid token format")
-	}
+	// Split the token data into lines
+	lines := strings.Split(string(data), "\n")
+	// if len(lines) < 6 {
+	// 	return nil, fmt.Errorf("invalid token format")
+	// }
 
-	// Deserialize the macaroon from the first part
-	macaroonData, err := base64.StdEncoding.DecodeString(parts[0])
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode macaroon data: %v", err)
-	}
-	mac, err := macaroon.Deserialize(macaroonData)
+	// Deserialize the macaroon from the lines
+	mac, err := macaroon.Deserialize([]byte(strings.Join(lines[:len(lines)-1], "\n")))
 	if err != nil {
 		return nil, fmt.Errorf("failed to deserialize macaroon: %v", err)
 	}
 
-	// Parse the preimage from the second part
-	preimage, err := lntypes.MakePreimageFromStr(parts[1])
+	// Parse the preimage from the last line
+	preimageLine := lines[len(lines)-1]
+	if !strings.HasPrefix(preimageLine, "preimage ") {
+		return nil, fmt.Errorf("missing preimage")
+	}
+	preimage, err := lntypes.MakePreimageFromStr(strings.TrimPrefix(preimageLine, "preimage "))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse preimage: %v", err)
 	}

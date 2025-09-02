@@ -78,7 +78,7 @@ type TokenId struct {
 	Hash    lntypes.Hash   // The hash of the preimage of the transaction
 }
 
-func (token Token) Id() TokenId {
+func (token *Token) Id() TokenId {
 	return TokenId{
 		Version: BaseVersion,
 		UserId:  token.Macaroon.UserId(),

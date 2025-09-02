@@ -3,6 +3,7 @@ package macaroon
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"lsat/secrets"
 	"strings"
 
@@ -47,21 +48,15 @@ func (mac Macaroon) String() string {
 	var sb strings.Builder
 
 	// Write the identifier
-	sb.WriteString("identifier ")
-	sb.WriteString(mac.userId.String())
-	sb.WriteString("\n")
+	fmt.Fprintf(&sb, "identifier %s\n", mac.userId.String())
 
 	// Write the caveats as key-value pairs
 	for _, caveat := range mac.caveats {
-		sb.WriteString(caveat.Key)
-		sb.WriteString(" ")
-		sb.WriteString(caveat.Value)
-		sb.WriteString("\n")
+		fmt.Fprintf(&sb, "%s %s\n", caveat.Key, caveat.Value)
 	}
 
 	// Write the signature
-	sb.WriteString("signature ")
-	sb.WriteString(mac.signature.String())
+	fmt.Fprintf(&sb, "signature %s", mac.signature.String())
 
 	return sb.String()
 }
