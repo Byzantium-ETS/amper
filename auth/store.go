@@ -1,11 +1,11 @@
 package auth
 
 import (
-	"encoding/json"
 	"fmt"
 	"lsat/macaroon"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/lightningnetwork/lnd/lntypes"
 )
@@ -14,11 +14,6 @@ import (
 const (
 	baseFileName = "l402.token."
 )
-
-type tokenJSON struct {
-	Macaroon macaroon.MacaroonJSON `json:"macaroon"`
-	Preimage string                `json:"preimage"`
-}
 
 // TokenStore defines the interface for storing and retrieving tokens.
 type TokenStore interface {
@@ -55,21 +50,13 @@ func (store *LocalStore) StoreToken(id macaroon.TokenId, token macaroon.Token) e
 	// Construct the file path
 	filePath := store.FilePath(id)
 
-	storedToken := tokenJSON{
-		Macaroon: token.Macaroon.ToJSON(),
-		Preimage: token.Preimage.String(),
-	}
-
-	// Marshal the token to JSON
-	data, err := json.MarshalIndent(storedToken, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal token: %v", err)
-	}
-
-	fmt.Println(string(data))
-
-	// Write the JSON data to the file
-	err = os.WriteFile(filePath, data, 0644)
+	// Write the token to the file using Macaroon.String() for formatting
+	data := fmt.Sprintf(
+		"%s\npreimage %s",
+		token.Macaroon.String(),
+		token.Preimage.String(),
+	)
+	err := os.WriteFile(filePath, []byte(data), 0644)
 	if err != nil {
 		return fmt.Errorf("failed to write token to file: %v", err)
 	}
@@ -77,7 +64,7 @@ func (store *LocalStore) StoreToken(id macaroon.TokenId, token macaroon.Token) e
 	return nil
 }
 
-// GetToken reads the token from a file where it should be saved, unmarshals it, and returns the token object.
+// GetToken reads the token from a file where it should be saved and returns the token object.
 func (store *LocalStore) GetToken(id macaroon.TokenId) (*macaroon.Token, error) {
 	// Construct the file path
 	filePath := store.FilePath(id)
@@ -85,31 +72,33 @@ func (store *LocalStore) GetToken(id macaroon.TokenId) (*macaroon.Token, error) 
 	return store.GetTokenFromPath(filePath)
 }
 
-// GetToken reads the token from a file where it should be saved, unmarshals it, and returns the token object.
 func (store *LocalStore) GetTokenFromPath(filePath string) (*macaroon.Token, error) {
-	// Read the JSON data from the file
+	// Read the token data from the file
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read token file: %v", err)
 	}
 
-	// Unmarshal the JSON data into a Token object
-	var token tokenJSON
-	err = json.Unmarshal(data, &token)
+	// Split the token data into lines
+	lines := strings.Split(string(data), "\n")
+	// if len(lines) < 6 {
+	// 	return nil, fmt.Errorf("invalid token format")
+	// }
+
+	// Deserialize the macaroon from the lines
+	mac, err := macaroon.Deserialize([]byte(strings.Join(lines[:len(lines)-1], "\n")))
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal token: %v", err)
+		return nil, fmt.Errorf("failed to deserialize macaroon: %v", err)
 	}
 
-	// Decode the preimage.
-	preimage, err := lntypes.MakePreimageFromStr(token.Preimage)
-	if err != nil {
-		return nil, err
+	// Parse the preimage from the last line
+	preimageLine := lines[len(lines)-1]
+	if !strings.HasPrefix(preimageLine, "preimage ") {
+		return nil, fmt.Errorf("missing preimage")
 	}
-
-	// Build a typed macaroon from the JSON object.
-	mac, err := token.Macaroon.Unwrap()
+	preimage, err := lntypes.MakePreimageFromStr(strings.TrimPrefix(preimageLine, "preimage "))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse preimage: %v", err)
 	}
 
 	return &macaroon.Token{

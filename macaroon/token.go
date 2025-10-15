@@ -23,7 +23,7 @@ type Token struct {
 
 func (token Token) String() string {
 	// Encode the Macaroon(s) as base64
-	macaroonBase64 := token.Macaroon.String()
+	macaroonBase64 := token.Macaroon.EncodedString()
 
 	// Encode the Preimage as hex
 	preimageHex := token.Preimage.String()
@@ -60,12 +60,12 @@ func (token PreToken) Pay(node challenge.LightningNode) (Token, error) {
 
 func (token PreToken) String() string {
 	// Encode the Macaroon(s) as base64
-	macaroonBase64 := token.Macaroon.String()
+	macaroonBase64 := token.Macaroon.EncodedString()
 
 	// Encode the Invoice
 	invoice := token.InvoiceResponse.Invoice
 
-	// Combine the encoded Macaroon(s) and encoded Preimage as <macaroon(s)>:<preimage>
+	// Combine the encoded Macaroon(s) and encoded Preimage as <macaroon(s)>:<invoice>
 	encodedToken := fmt.Sprintf("%s:%s", macaroonBase64, invoice)
 
 	return encodedToken
@@ -78,7 +78,7 @@ type TokenId struct {
 	Hash    lntypes.Hash   // The hash of the preimage of the transaction
 }
 
-func (token Token) Id() TokenId {
+func (token *Token) Id() TokenId {
 	return TokenId{
 		Version: BaseVersion,
 		UserId:  token.Macaroon.UserId(),

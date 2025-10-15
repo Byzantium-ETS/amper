@@ -28,14 +28,9 @@ alt First time user
     CNode <-- SNode: Preimage
   deactivate SNode
   C <-- CNode: Preimage
-  C -> Auth: GET /, token + preimage
-  activate Auth
-    Auth -> Auth: Check token, validate payment
-    C <-- Auth: Access token
-  deactivate Auth
 
 else User with a token
-  C -> Auth: GET /protected, access token
+  C -> Auth: GET /protected, token + preimage
   activate Auth
     Auth -> Res
     activate Res

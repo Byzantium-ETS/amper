@@ -20,16 +20,25 @@ var (
 func main() {
 	config := service.NewConfig(
 		service.Service{
-			Name:  "test",
+			Name:  "image",
 			Tier:  service.BaseTier,
-			Price: 100,
+			Price: 1000,
 			FirstPartyCaveats: []service.Caveat{
-				service.Expire{Delay: time.Hour},
+				service.Expire{Delay: time.Minute},
 			},
-			Conditions: []service.Condition{service.Expire{}},
+			Conditions: []service.Condition{
+				service.Expire{},
+			},
 			Get: func(c any) error {
 				ctx := c.(*gin.Context)
-				ctx.JSON(http.StatusOK, "Hello, World!")
+				resp, err := http.Get("https://picsum.photos/200")
+				if err != nil {
+					ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch image"})
+					return err
+				}
+				defer resp.Body.Close()
+
+				ctx.DataFromReader(http.StatusOK, resp.ContentLength, resp.Header.Get("Content-Type"), resp.Body, nil)
 				return nil
 			},
 		},
