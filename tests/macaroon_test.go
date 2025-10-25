@@ -69,13 +69,13 @@ func TestMacaroonEncoding(t *testing.T) {
 		return
 	}
 
-	t.Log(mac.ToJSON())
+	t.Log(mac)
 
 	encodedMac := mac.String()
 
 	t.Log(encodedMac)
 
-	decodedMac, err := macaroon.DecodeBase64(encodedMac)
+	decodedMac, err := macaroon.Deserialize([]byte(encodedMac))
 
 	if err != nil {
 		t.Error(err)
@@ -127,8 +127,8 @@ func TestFirstPartyCaveats(t *testing.T) {
 	mac1, _ := oven.WithFirstPartyCaveats(testService.Caveats()...).Bake()
 	mac2, _ := oven.WithFirstPartyCaveats(testService.Caveats()...).Bake()
 
-	t.Log(mac1.ToJSON())
-	t.Log(mac2.ToJSON())
+	t.Log(mac1)
+	t.Log(mac2)
 
 	assert.Equal(t, mac1, mac2)
 }
@@ -149,8 +149,8 @@ func TestThirdPartyCaveats(t *testing.T) {
 	macThirdParty, _ := mac.Oven().WithThirdPartyCaveats(thirdPartyCaveat).Bake()
 	macFirstParty, _ := oven.WithThirdPartyCaveats(thirdPartyCaveat).Bake()
 
-	t.Log(macFirstParty.ToJSON())
-	t.Log(macThirdParty.ToJSON())
+	t.Log(macFirstParty)
+	t.Log(macThirdParty)
 
 	assert.Equal(t, macFirstParty, macThirdParty)
 }

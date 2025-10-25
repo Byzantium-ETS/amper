@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"io"
@@ -12,10 +13,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
-var serviceURL = "http://0.0.0.0:8080/service/image:0"
+var serviceURL = "http://0.0.0.0:8080/service/test:0"
 
 type TestClient struct {
 	tokenPath string
@@ -63,8 +63,11 @@ func decodeMacaroon(input string) (macaroon.Macaroon, error) {
 		return macaroon.Macaroon{}, fmt.Errorf("invalid macaroon string")
 	}
 
-	macaroonStr := parts[1]
-	return macaroon.DecodeBase64(macaroonStr)
+	macaroonData, err := base64.StdEncoding.DecodeString(parts[1])
+	if err != nil {
+		return macaroon.Macaroon{}, fmt.Errorf("error decoding macaroon string: %v", err)
+	}
+	return macaroon.Deserialize(macaroonData)
 }
 
 func (c *TestClient) sendTokenRequest() {
@@ -106,7 +109,7 @@ func (c *TestClient) sendTokenRequest() {
 				return
 			}
 
-			fmt.Println(token.Macaroon.ToJSON())
+			fmt.Println(token.Macaroon)
 			c.sendAuthorizationRequest(serviceURL, token)
 		}
 	} else {
@@ -141,13 +144,10 @@ func (c *TestClient) sendAuthorizationRequest(url string, token macaroon.Token) 
 		if err != nil {
 			fmt.Println("Error creating the store:", err)
 		}
-		if c.tokenPath == "" {
-			shareToken(store, token)
-		}
+		store.StoreToken(token.Id(), token)
 
-		// body, _ := io.ReadAll(resp.Body)
-		// fmt.Println(string(body))
-		fmt.Println(resp.Status)
+		body, _ := io.ReadAll(resp.Body)
+		fmt.Println(string(body))
 	} else {
 		fmt.Println("Unexpected response status:", resp.Status)
 	}
@@ -159,26 +159,6 @@ func getTokenPath() string {
 	flag.Parse()
 
 	return *token
-}
-
-// shareToken stores a version of the token that can be shared with others.
-func shareToken(store auth.TokenStore, token macaroon.Token) error {
-	// The time at which the new macaroon will expire.
-	expiryDate := time.Now().Add(5 * time.Minute)
-
-	// Creating the restricted macaroon
-	mac, err := token.Macaroon.Oven().WithThirdPartyCaveats(macaroon.NewCaveat(macaroon.ExpiryDateKey, expiryDate.Format(time.RFC3339))).Bake()
-	if err != nil {
-		return err
-	}
-
-	// Update the macaroon in the token.
-	token.Macaroon = mac
-
-	// Store the token.
-	store.StoreToken(token.Id(), token)
-
-	return nil
 }
 
 func getEnv(key, defaultVal string) string {

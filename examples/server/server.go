@@ -30,7 +30,7 @@ var (
 func main() {
 	config := service.NewConfig(
 		service.Service{
-			Name:  "image",
+			Name:  "test",
 			Tier:  service.BaseTier,
 			Price: 100,
 			FirstPartyCaveats: []service.Caveat{
@@ -39,7 +39,7 @@ func main() {
 			Conditions: []service.Condition{service.Expire{}},
 			Get: func(c any) error {
 				ctx := c.(*gin.Context)
-				ctx.Redirect(http.StatusFound, "https://picsum.photos/1000")
+				ctx.JSON(http.StatusOK, "Hello, World!")
 				return nil
 			},
 		},

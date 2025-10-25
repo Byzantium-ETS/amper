@@ -2,9 +2,10 @@ package macaroon
 
 import (
 	"encoding/base64"
-	"encoding/hex"
-	"encoding/json"
+	"errors"
+	"fmt"
 	"lsat/secrets"
+	"strings"
 
 	"github.com/lightningnetwork/lnd/lntypes"
 )
@@ -44,17 +45,25 @@ func (mac *Macaroon) GetValue(key string) ValueIterator {
 }
 
 func (mac Macaroon) String() string {
-	// Marshal the Macaroon struct to JSON
-	jsonData, err := json.Marshal(mac.ToJSON())
+	var sb strings.Builder
 
-	if err != nil {
-		panic(err)
+	// Write the identifier
+	fmt.Fprintf(&sb, "identifier %s\n", mac.userId.String())
+
+	// Write the caveats as key-value pairs
+	for _, caveat := range mac.caveats {
+		fmt.Fprintf(&sb, "%s %s\n", caveat.Key, caveat.Value)
 	}
 
-	// Encode the JSON data to base64
-	base64String := base64.StdEncoding.EncodeToString(jsonData)
+	// Write the signature
+	fmt.Fprintf(&sb, "signature %s", mac.signature.String())
 
-	return base64String
+	return sb.String()
+}
+
+// EncodedString returns the base64-encoded string representation of the Macaroon.
+func (mac Macaroon) EncodedString() string {
+	return base64.StdEncoding.EncodeToString([]byte(mac.String()))
 }
 
 // Create an oven from a Macaroon.
@@ -69,95 +78,51 @@ func (mac *Macaroon) Oven() Oven {
 	}
 }
 
-// MacaroonJSON struct is used for JSON encoding/decoding of macaroon.
-type MacaroonJSON struct {
-	UserId    string   `json:"user_id"`
-	Caveats   []Caveat `json:"caveats"`
-	Signature string   `json:"signature"`
-}
-
-// ToJSON converts Macaroon to macaroonJSON.
-func (mac *Macaroon) ToJSON() MacaroonJSON {
-	return MacaroonJSON{
-		UserId:    mac.userId.String(),
-		Caveats:   mac.caveats,
-		Signature: mac.Signature().String(),
-	}
-}
-
-func (mac MacaroonJSON) String() string {
-	// Marshal the Macaroon struct to JSON
-	jsonData, err := json.MarshalIndent(mac, "", "  ")
-
-	if err != nil {
-		panic(err)
+// Deserialize decodes a base64-encoded macaroon string into a Macaroon struct.
+func Deserialize(data []byte) (Macaroon, error) {
+	// Split the string into lines
+	lines := strings.Split(string(data), "\n")
+	if len(lines) < 2 {
+		return Macaroon{}, errors.New("invalid macaroon format")
 	}
 
-	return string(jsonData)
-}
-
-// Unwrap get a Macaroon from the JSON object.
-func (mac MacaroonJSON) Unwrap() (Macaroon, error) {
-	signature, err := lntypes.MakeHashFromStr(mac.Signature)
-	if err != nil {
-		return Macaroon{}, err
+	// Parse the identifier
+	var err error
+	var userId secrets.UserID
+	if identifier, found := strings.CutPrefix(lines[0], "identifier "); found {
+		userId, err = secrets.MakeUserIdFromStr(identifier)
+		if err != nil {
+			return Macaroon{}, err
+		}
+	} else {
+		return Macaroon{}, errors.New("missing identifier")
 	}
 
-	userId, err := secrets.MakeUserIdFromStr(mac.UserId)
-	if err != nil {
-		return Macaroon{}, err
+	// Parse the caveats
+	var caveats []Caveat
+	for _, line := range lines[1 : len(lines)-1] {
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) != 2 {
+			return Macaroon{}, errors.New("invalid caveat format")
+		}
+		caveats = append(caveats, Caveat{Key: parts[0], Value: parts[1]})
 	}
 
+	// Parse the signature
+	var signature lntypes.Hash
+	if signatureLine, found := strings.CutPrefix(lines[len(lines)-1], "signature "); found {
+		signature, err = lntypes.MakeHashFromStr(signatureLine)
+		if err != nil {
+			return Macaroon{}, err
+		}
+	} else {
+		return Macaroon{}, errors.New("missing signature")
+	}
+
+	// Create and return the Macaroon struct
 	return Macaroon{
 		userId:    userId,
+		caveats:   caveats,
 		signature: signature,
-		caveats:   mac.Caveats,
 	}, nil
-}
-
-func (mac *Macaroon) MarshalJSON() ([]byte, error) {
-	return json.Marshal(mac.ToJSON())
-}
-
-// decodeBase64 decodes a base64-encoded string.
-func decodeBase64(encodedString string) ([]byte, error) {
-	decoded, err := base64.StdEncoding.DecodeString(encodedString)
-	if err != nil {
-		return nil, err
-	}
-	return decoded, nil
-}
-
-// Decode decodes a base64-encoded macaroon string into a Macaroon struct.
-func DecodeBase64(encodedString string) (Macaroon, error) {
-	// Decode the base64 string
-	decoded, err := decodeBase64(encodedString)
-	if err != nil {
-		return Macaroon{}, err
-	}
-
-	// Unmarshal the decoded data into the macaroonJSON type
-	var macJSON MacaroonJSON
-	err = json.Unmarshal(decoded, &macJSON)
-
-	if err != nil {
-		return Macaroon{}, err
-	}
-
-	// Convert the hex-encoded UID and signature to their respective types
-	uid, _ := hex.DecodeString(macJSON.UserId)
-	sig, _ := hex.DecodeString(macJSON.Signature)
-
-	// Create lntypes.Hash and secrets.UserId from the decoded values
-	sigHash, _ := lntypes.MakeHash(sig)
-	uidHash, _ := secrets.MakeUserId(uid)
-
-	// Create a Macaroon struct
-	mac := Macaroon{
-		userId:    uidHash,
-		caveats:   macJSON.Caveats,
-		signature: sigHash,
-	}
-
-	return mac, nil
 }
