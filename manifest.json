@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "L402 Wallet",
+  "version": "1.0.0",
+  "description": "A browser extension for managing L402 macaroon tokens and Lightning Network payments.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "action": {
+    "default_popup": "src/pages/popup.html",
+    "default_icon": {
+      "16": "src/assets/icon-16.png",
+      "48": "src/assets/icon-48.png",
+      "128": "src/assets/icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "src/services/background.js"
+  },
+  "icons": {
+    "16": "src/assets/icon-16.png",
+    "48": "src/assets/icon-48.png",
+    "128": "src/assets/icon-128.png"
+  },
+  "options_ui": {
+    "page": "src/pages/options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/services/content.js"]
+    }
+  ]
+}
