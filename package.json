@@ -1,0 +1,27 @@
+{
+  "name": "amper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Amper — a browser extension for managing L402 macaroon tokens.",
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "clean": "rimraf dist .cache",
+    "build:ts": "esbuild src/services/background.ts src/services/content.ts --bundle --platform=browser --target=es2020 --outdir=dist --format=esm --sourcemap",
+    "copy:assets": "copyfiles -u 1 \"src/**/*.{html,css,png,svg,ico,json,js,css}\" manifest.json dist",
+    "build": "npm run clean && npm run build:ts && npm run copy:assets",
+    "watch": "esbuild src/services/background.ts src/services/content.ts --bundle --platform=browser --target=es2020 --outdir=dist --format=esm --sourcemap --watch",
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "esbuild": "^0.18.20",
+    "typescript": "^5.2.2",
+    "copyfiles": "^2.4.1",
+    "rimraf": "^5.0.0",
+    "@types/chrome": "^0.0.189"
+  }
+}

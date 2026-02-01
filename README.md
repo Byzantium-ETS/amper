@@ -1,8 +1,8 @@
-# L402 Wallet - A Web Wallet for the Lightning Network
+# Amper - A Web Wallet for the Lightning Network
 
 ## Overview
 
-L402 Wallet is a browser extension inspired by MetaMask that enables seamless interaction with the L402 protocol. It acts as a "web wallet" for managing macaroon tokens and facilitating payments over the Lightning Network. The wallet is designed to simplify the process of authenticating and paying for API services using the L402 standard.
+Amper is a browser extension inspired by MetaMask that enables seamless interaction with the L402 protocol. It acts as a "web wallet" for managing macaroon tokens and facilitating payments over the Lightning Network. The wallet is designed to simplify the process of authenticating and paying for API services using the L402 standard.
 
 ## Features
 
@@ -23,8 +23,8 @@ L402 Wallet is a browser extension inspired by MetaMask that enables seamless in
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/l402-wallet.git
-   cd l402-wallet
+   git clone https://github.com/Byzantium-ETS/amper.git
+   cd amper
    ```
 
 2. Install dependencies:
@@ -82,6 +82,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - [L402 Protocol Documentation](https://docs.lightning.engineering/the-lightning-network/l402)
 - [LSAT Implementation](https://github.com/Byzantium-ETS/lsat)
 - [Lightning Network Documentation](https://docs.lightning.engineering/)
-
----
-Happy hacking!

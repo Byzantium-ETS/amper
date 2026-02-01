@@ -1,16 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "L402 Wallet",
+  "name": "Amper",
   "version": "1.0.0",
-  "description": "A browser extension for managing L402 macaroon tokens and Lightning Network payments.",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "scripting"
-  ],
-  "host_permissions": [
-    "*://*/*"
-  ],
+  "description": "Amper — a browser extension for managing L402 macaroon tokens.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["*://*/*"],
   "action": {
     "default_popup": "src/pages/popup.html",
     "default_icon": {
@@ -20,7 +14,7 @@
     }
   },
   "background": {
-    "service_worker": "src/services/background.js"
+    "service_worker": "dist/background.js"
   },
   "icons": {
     "16": "src/assets/icon-16.png",
@@ -34,7 +28,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/services/content.js"]
+      "js": ["dist/content.js"]
     }
   ]
 }
