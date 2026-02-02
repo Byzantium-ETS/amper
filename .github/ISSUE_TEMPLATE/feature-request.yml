@@ -1,0 +1,50 @@
+name: Feature Request
+description: Suggest a new feature or enhancement.
+title: "[Feature Request]: "
+labels: ["enhancement", "feature"]
+projects: ["Amper/1"]
+assignees: []
+type: feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature! Please provide as much detail as possible.
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: Provide a detailed description of the feature you'd like to see.
+      placeholder: What would you like to see added or improved?
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this feature important to you? How would it help you or others?
+      placeholder: Explain the problem this feature solves.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define the conditions that must be met for this feature to be considered complete.
+      placeholder: List the criteria here, e.g., "1. The feature should allow X. 2. The feature should support Y."
+    validations:
+      required: true
+  - type: textarea
+    id: helpful-tools
+    attributes:
+      label: Helpful Tools or Resources
+      description: Provide any tools, libraries, or resources that could assist in implementing this feature.
+      placeholder: List tools or resources here, e.g., "Library Z, API documentation for Y."
+    validations:
+      required: false
+  - type: textarea
+    id: attachements
+    attributes:
+      label: Attachements
+      description: Drag and drop any files or images here, or provide links to resources that might help in understanding or implementing this feature.
+      placeholder: e.g., Link to design mockups, screenshots, or other relevant files.

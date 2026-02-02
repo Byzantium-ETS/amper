@@ -1,4 +1,4 @@
-# Amper - A Web Wallet for the Lightning Network
+# Amper - A Bitcoin Powered Web Wallet
 
 ## Overview
 
@@ -48,22 +48,6 @@ Amper is a browser extension inspired by MetaMask that enables seamless interact
 2. Use the wallet to pay for API services that support the L402 protocol.
 3. Manage your macaroon tokens and view payment history in the dashboard.
 
-## Project Structure
-
-```
-l402-wallet/
-├── src/
-│   ├── components/    # Reusable UI components
-│   ├── pages/         # Extension pages (popup, options, etc.)
-│   ├── services/      # Business logic and API integrations
-│   ├── styles/        # CSS and styling files
-│   ├── utils/         # Utility functions
-│   ├── assets/        # Static assets (images, icons, etc.)
-├── README.md          # Project documentation
-├── package.json       # Project dependencies and scripts
-├── manifest.json      # Browser extension manifest
-```
-
 ## Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -72,10 +56,6 @@ Contributions are welcome! Please follow these steps:
 2. Create a new branch for your feature or bug fix.
 3. Commit your changes and push them to your fork.
 4. Submit a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Resources
 
